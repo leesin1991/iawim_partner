@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="bike.partner.security.user.provider" class="Bike\Partner\Security\User\UserProvider">
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="bike.partner.security.authentication.handler.success" 
+        class="Bike\Partner\Security\Authentication\Handler\SuccessHandler">
+            <argument type="service" id="router"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+            <tag name="monolog.logger" channel="security"/>
+        </service>
+
+        <service id="bike.partner.security.voter.role"
+            class="Bike\Partner\Security\Voter\RoleVoter"
+            public="false"
+            >
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+            <tag name="security.voter" />
+        </service>
+
+        <service id="bike.partner.security.voter.agent"
+            class="Bike\Partner\Security\Voter\AgentVoter"
+            public="false"
+            >
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+            <tag name="security.voter" />
+        </service>
+
+        <service id="bike.partner.security.voter.cs_staff"
+            class="Bike\Partner\Security\Voter\CsStaffVoter"
+            public="false"
+            >
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+            <tag name="security.voter" />
+        </service>
+    </services>
+</container>

@@ -1,0 +1,146 @@
+{% extends 'BikePartnerBundle::layout.html.twig' %}
+
+{% block content %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        新增代理商
+        <small></small>
+      </h1>
+      <ol class="breadcrumb">
+        <li><i class="fa fa-dashboard"></i> 首页</li>
+        <li>用户管理</li>
+        <li><a href="{{ path('agent') }}">代理商</a></li>
+        <li class="active">新增</li>
+      </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="row">
+        <div class="col-md-12">
+          <!-- general form elements -->
+          <div class="box box-primary">
+            <div class="box-header with-border">
+              <h3 class="box-title">账号信息</h3>
+            </div>
+            <!-- /.box-header -->
+            <!-- form start -->
+            <form role="form" id="new-agent-form">
+<div class="row">
+    <div class="col-md-6 col-sm-12 col-xs-12">
+              <div class="box-body">
+                <div class="callout callout-danger" style="display:none">
+                  <h4>创建失败</h4>
+                  <p></p>
+                </div>
+                <div class="form-group">
+                  <label for="name">姓名</label>
+                  <input type="text" class="form-control" id="name" name="name" placeholder="" required="required">
+                </div>
+                <div class="form-group">
+                  <label for="username">用户名</label>
+                  <input type="text" class="form-control" id="username" name="username" placeholder="" required="required">
+                </div>
+                <div class="form-group">
+                  <label for="pwd">密码</label>
+                  <input type="password" class="form-control" id="pwd" name="pwd" placeholder="" required="required">
+                </div>
+                <div class="form-group">
+                  <label for="repwd">确认密码</label>
+                  <input type="password" class="form-control" id="repwd" name="repwd" placeholder="" required="required">
+                </div>
+
+{% set role = app.user.getRole() %}
+{% if role == 'ROLE_ADMIN' %}
+  <div class="form-group">
+                  <label for="level">等级</label>
+                  <select name="level" id="level" class="form-control select2" style="width: 100%;" >
+                      <option value="0">选择等级</option>
+{% set levelMap = bike_parter_agent_levelmap() %}
+{% for key,name in levelMap %}
+                      <option value="{{ key }}">{{ name }}</option>
+{% endfor %}
+                  </select>
+                </div>
+
+                <div class="form-group" style="display:none;">
+                  <label for="parent_id">上级代理商</label>
+                  <select name="parent_id" id="parent_id" class="form-control select2" style="width: 100%;" >
+                      <option value="0">选择上级代理商</option>
+                      {# <option value="1">一级</option> #}
+                      
+                  </select>
+                </div>
+{% elseif role == 'ROLE_AGENT' %}
+                <input type="hidden" name="level" value="{{ agent.getLevel()+1 }}">
+                <input type="hidden" name="parent_id" value="{{ agent.getId() }}">
+{% endif %}
+
+              </div>
+              <!-- /.box-body -->
+    </div>
+</div>
+
+              <div class="box-footer">
+                <button type="submit" class="btn btn-primary">创建</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+{% endblock %}
+
+{% block footer_js %}
+{{ parent() }}
+<script>
+$(function(){
+    $(".select2").select2();
+
+     $('#level').on('change',function(){
+        var level = $(this).val();
+        $('#parent_id').val(0);
+        $('#parent_id').trigger('change');
+        if (level == 1 || level == 0) {
+          $('#parent_id').parent().hide();
+        } else {
+          getParentStaff(level);
+          $('#parent_id').parent().show();
+        }
+    });
+
+    function getParentStaff(level)
+    {
+      var url = '{{ path('agent_parent_agent') }}';
+      $.post(url,{'level':level,},function(results){
+            var json ;
+            json = results.data;
+            var str = '';
+            for (var key in json) {
+                str+='<option value="'+key+'">'+json[key]+'</option>';
+            }
+            $('#parent_id').html(str);
+
+      },'json');
+    }
+
+    var $form = $('#new-agent-form');
+    $form.submit(function(){
+        var url = '{{ path('agent_new') }}';
+        var data = $form.serializeArray();
+
+        $form.find('button[type="submit"]').prop('disabled', true);
+        $.post(url, data, function(result){
+            if (result.errno == 0) {
+                window.location.href = '{{ path('agent') }}';
+            } else {
+                $form.find('.callout-danger').show().find('p').html(result.errmsg);
+            }
+            $form.find('button[type="submit"]').prop('disabled', false);
+        });
+        return false;
+    });
+});
+</script>
+{% endblock %}

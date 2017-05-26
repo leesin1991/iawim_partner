@@ -1,0 +1,142 @@
+{% extends 'BikePartnerBundle::layout.html.twig' %}
+
+{% block content %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        委托人 
+        <small></small>
+      </h1>
+      <ol class="breadcrumb">
+        <li><i class="fa fa-dashboard"></i> 首页</li>
+        <li>用户管理</li>
+        <li class="active">委托人</li>
+      </ol>
+    </section>
+
+    <section class="content search-section" style="min-height:auto;">
+      <div class="box" style="border:none;margin-bottom:0px;">
+        <div class="box-body">
+            <form method="get" id="search-form" class="form-inline">
+              <input type="hidden" name="search" value="1">
+              <div class="form-group col-xs-3">
+                <label for="name">姓名：</label>
+                <input type="text" class="form-control" name="name" value="{{ app.request.query.get('name') }}"  id="name" placeholder="请输入姓名">
+              </div>
+              <button type="submit" class="btn btn-primary">查询</button>
+              
+            </form>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="row">
+        <div class="col-xs-12">
+          <div class="box">
+            <div class="box-header">
+              <h3 class="box-title">列表</h3>
+
+              <div class="box-tools">
+                <a href="{{ path('client_new') }}" class="btn btn-sm btn-block btn-primary">新增</a>
+              </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body table-responsive no-padding">
+              <table class="table table-hover">
+                <tbody><tr>
+                  <th>ID</th>
+                  <th>用户名</th>
+                  <th>姓名</th>
+                  <th>操作</th>
+                </tr>
+{% for v in list.client %}
+                <tr>
+                  <td>{{ v.getId() }}</td>
+                  <td>{{ map.passport[v.getId()].getUsername() }}</td>
+                  <td>{{ v.getName() }}</td>
+                  <td>
+                    <a title="编辑" href="{{ path('client_edit',{'id':v.getId() }) }}"><i class="fa fa-fw fa-edit"></i></a>
+                    <a title="分配车辆" data-toggle="modal" data-target=".bs-example-modal-lg" data-id="{{ v.getId() }}"><i class="fa fa-fw fa-bicycle"></i></a>
+  
+                  </td>
+                </tr>
+{% endfor %}
+              </tbody></table>
+            </div>
+            <!-- /.box-body -->
+            <div class="box-footer clearfix">
+{% import 'BikePartnerBundle::paginator.macro.twig' as paginator %}
+{{ paginator.paginate(page, totalPage, 5, 'client', app.request.query.all(), ['pull-right']) }}
+            </div>
+          </div>
+          <!-- /.box -->
+        </div>
+      </div>
+
+    <!-- 分配车辆modal -->
+    <div class="modal fade bs-example-modal-lg" id="bind-modal" tabindex="-1" role="dialog" aria-labelledby="bind-card-modal-label" style="margin-top:100px;">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="bind-card-modal-label">分配车辆</h4>
+          </div>
+          <div class="modal-body">
+            <div class="panel panel-danger modal-error">
+              <div class="panel-heading"> 
+                <h3 class="panel-title">
+                  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                  <span class="sr-only">Error:</span>
+                  <span>出错啦</span>
+                </h3> 
+              </div> 
+              <div class="panel-body"> 
+              </div> 
+            </div>
+            <div class="modal-info">
+                <div class="form-group">
+                    <label for="bind-bike">车辆SN</label>
+                    <input id="bind-bike" name="sn" class="form-control" placeholder="请输入车辆SN"/> 
+                </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" name="confirm">分配</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </section>
+    <script type="text/javascript">
+      window.onload = function(){
+          var $bindModal = $('#bind-modal');
+          $bindModal.on('show.bs.modal', function (e) {
+              $bindModal.find('button[name="confirm"]').data('id', $(e.relatedTarget).data('id'));
+              $bindModal.find('.modal-error').hide();
+          });
+
+          $bindModal.find('button[name="confirm"]').click(function(){ 
+              var url = '{{ path('bike_bind') }}';
+              var data = {
+                  clientId: $bindModal.find('button[name="confirm"]').data('id'),
+                  sn: $bindModal.find('input[name="sn"]').val()
+              };
+
+              $bindModal.find('button[name="confirm"]').prop('disabled', true);
+              $.post(url, data, function(result){
+                  if (result.errno === 0) {
+                      window.location.reload();
+                  } else {
+                      $bindModal.find('.modal-error .panel-body').html(result.errmsg);
+                      $bindModal.find('.modal-error').show();
+                  }
+                  $bindModal.find('button[name="confirm"]').prop('disabled', false);
+              }, 'json'); 
+          });
+      }
+    </script>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'BikePartnerBundle::layout.html.twig' %}
+
+{% block content %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        代理商
+        <small></small>
+      </h1>
+      <ol class="breadcrumb">
+        <li><i class="fa fa-dashboard"></i> 首页</li>
+        <li>用户管理</li>
+        <li class="active">代理商</li>
+      </ol>
+    </section>
+
+    <section class="content search-section" style="min-height:auto;">
+      <div class="box" style="border:none;margin-bottom:0px;">
+        <div class="box-body">
+            <form method="get" id="search-form" class="form-inline">
+              <input type="hidden" name="search" value="1">
+              <div class="form-group col-xs-3">
+                <label for="name">姓名：</label>
+                <input type="text" class="form-control" name="name" value="{{ app.request.query.get('name') }}"  id="name" placeholder="请输入姓名">
+              </div>
+              <button type="submit" class="btn btn-primary">查询</button>
+              
+            </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+
+      <div class="row">
+        <div class="col-xs-12">
+          <div class="box">
+            <div class="box-header">
+              <h3 class="box-title">列表</h3>
+
+              <div class="box-tools">
+                <a href="{{ path('agent_new') }}" class="btn btn-sm btn-block btn-primary">新增</a>
+              </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body table-responsive no-padding">
+              <table class="table table-hover">
+                <tbody><tr>
+                  <th>ID</th>
+                  <th>用户名</th>
+                  <th>姓名</th>
+                  <th>操作</th>
+                </tr>
+{% for v in list.agent %}
+                <tr>
+                  <td>{{ v.getId() }}</td>
+                  <td>{{ map.passport[v.getId()].getUsername() }}</td>
+                  <td>{{ v.getName() }}</td>
+                  <td>
+                    <a href="{{ path('agent_edit',{'id':v.getId() }) }}"><i class="fa fa-fw fa-edit"></i></a>
+                  </td>
+                </tr>
+{% endfor %}
+              </tbody></table>
+            </div>
+            <!-- /.box-body -->
+            <div class="box-footer clearfix">
+{% import 'BikePartnerBundle::paginator.macro.twig' as paginator %}
+{{ paginator.paginate(page, totalPage, 5, 'agent', app.request.query.all(), ['pull-right']) }}
+            </div>
+          </div>
+          <!-- /.box -->
+        </div>
+      </div>
+    </section>
+{% endblock %}
